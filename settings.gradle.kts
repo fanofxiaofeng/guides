@@ -24,7 +24,6 @@ val guides = listOf(
         "consuming-jvm-libraries",
         "creating-build-scans",
         "creating-multi-project-builds",
-        "creating-new-gradle-builds",
         "designing-gradle-plugins",
         "executing-gradle-builds-on-jenkins",
         "executing-gradle-builds-on-teamcity",
