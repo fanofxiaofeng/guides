@@ -19,9 +19,8 @@ import org.apache.tools.zip.UnixStat;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipOutputStream;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -92,10 +91,18 @@ public abstract class ZipSample extends DefaultTask {
                         } else {
                             entry = new ZipEntry(fileDetails.getRelativePath().getPathString());
                         }
+
                         entry.setSize(fileDetails.getSize());
                         entry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
                         zipStream.putNextEntry(entry);
-                        fileDetails.copyTo(zipStream);
+
+                        if (Arrays.asList("build.gradle", "settings.gradle", "build.gradle.kts", "settings.gradle.kts").contains(fileDetails.getName())) {
+                            // TODO (donat) this is a hacky workaround. The proper solution could be to introduce a preprocess phase for all samples
+                            zipStream.write(filterUserGuideRefs(fileDetails).getBytes());
+                        } else {
+                            fileDetails.copyTo(zipStream);
+                        }
+
                         zipStream.closeEntry();
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
@@ -105,6 +112,22 @@ public abstract class ZipSample extends DefaultTask {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String filterUserGuideRefs(FileVisitDetails fileDetails) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        fileDetails.copyTo(bos);
+
+        StringBuilder builder = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new StringReader(bos.toString()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (!line.contains("// tag::") && !line.contains("// end::")) {
+                builder.append(line);
+                builder.append('\n');
+            }
+        }
+        return builder.toString();
     }
 
     private FileTree getFilteredSourceTree() {
