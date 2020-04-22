@@ -199,6 +199,7 @@ public class SamplesDocumentationPlugin implements Plugin<Project> {
         String name = sample.getName();
         sample.getSampleDirectory().convention(extension.getSamplesRoot().dir(toKebabCase(name)));
         sample.getReadmeFile().convention(sample.getSampleDirectory().file("README.adoc"));
+        sample.isPromoted().convention(Boolean.TRUE);
         sample.getDisplayName().convention(toTitleCase(name));
         sample.getDescription().convention("");
         sample.getCategory().convention("Uncategorized");
